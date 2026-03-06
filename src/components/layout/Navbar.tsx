@@ -3,9 +3,8 @@ import myImage from "../../assets/logo.png"
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, GraduationCap, Sun, Moon } from "lucide-react";
+import { Menu, X, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/hooks/use-theme";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -21,8 +20,6 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -83,19 +80,6 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="w-5 h-5 text-amber-400" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
 
           {/* CTA Button */}
           <Link
