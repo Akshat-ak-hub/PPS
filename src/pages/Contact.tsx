@@ -1,4 +1,5 @@
 import { useState } from "react";
+import emailjs from "@emailjs/browser";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -26,16 +27,33 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await emailjs.send(
+        "priya-public-school1822",
+        "template_vag45ns",
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        "9j-EqnDPmfSSvyuML"
+      );
 
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll get back to you soon.",
-    });
-
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    setIsSubmitting(false);
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you soon.",
+      });
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Failed to send",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -145,11 +163,11 @@ const Contact = () => {
                       className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     >
                       <option value="">Select a Subject</option>
-                      <option value="admissions">Admissions Inquiry</option>
-                      <option value="tour">Schedule a Tour</option>
-                      <option value="academics">Academic Programs</option>
-                      <option value="fees">Tuition & Fees</option>
-                      <option value="other">Other</option>
+                      <option value="Admissions Inquiry">Admissions Inquiry</option>
+                      <option value="Schedule a Tour">Schedule a Tour</option>
+                      <option value="Academic Programs">Academic Programs</option>
+                      <option value="Tuition & Fees">Tuition & Fees</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
 
@@ -258,7 +276,7 @@ const Contact = () => {
               <div className="rounded-2xl overflow-hidden shadow-card border border-border">
                 <iframe
                   title="Priya Public School Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3421.8!2d77.018!3d31.048!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sPanner%2C+Solan%2C+Himachal+Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  src="https://www.google.com/maps?q=31.057084,76.787437&output=embed"
                   width="100%"
                   height="220"
                   style={{ border: 0 }}

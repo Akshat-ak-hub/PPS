@@ -7,11 +7,11 @@ import Index from "./pages/Index";
 import About from "./pages/About";
 import Academics from "./pages/Academics";
 import Admissions from "./pages/Admissions";
-import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import OnlineApplication from "./pages/OnlineApplication";
 import FeeStructure from "./pages/FeeStructure"; // ✅ ADD THIS
+import RulesAndRegulations from "./pages/RulesAndRegulations";
 
 const queryClient = new QueryClient();
 
@@ -26,10 +26,10 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/academics" element={<Academics />} />
           <Route path="/admissions" element={<Admissions />} />
-          <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/fee-structure" element={<FeeStructure />} /> {/* ✅ CORRECT */}
           <Route path="/apply-online" element={<OnlineApplication />} />
+          <Route path="/rules-and-regulations" element={<RulesAndRegulations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

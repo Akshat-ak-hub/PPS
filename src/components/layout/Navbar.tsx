@@ -11,9 +11,9 @@ const navLinks = [
   { name: "About", href: "/about" },
   { name: "Academics", href: "/academics" },
   { name: "Admissions", href: "/admissions" },
-  { name: "Gallery", href: "/gallery" },
   { name: "Contact", href: "/contact" },
   { name: "Fee / Bus", href: "/fee-structure" },
+  { name: "Rules", href: "/rules-and-regulations" },
 ];
 
 const Navbar = () => {
@@ -42,7 +42,7 @@ const Navbar = () => {
       )}
     >
       <nav className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center jus file:tify-between h-16 lg:h-20 ">
+        <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105 ">
@@ -57,7 +57,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <ul className="hidden lg:flex items-center gap-1">
+          <ul className="hidden lg:flex items-center gap-2">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <Link
