@@ -7,6 +7,36 @@ import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { schoolInfo } from "@/data/schoolData";
 
+const EMAILJS_SERVICE_ID =
+  import.meta.env.VITE_EMAILJS_SERVICE_ID ?? "priya-public-school1822";
+const EMAILJS_TEMPLATE_ID =
+  import.meta.env.VITE_EMAILJS_TEMPLATE_ID ?? "template_9ihcm3w";
+const EMAILJS_PUBLIC_KEY =
+  import.meta.env.VITE_EMAILJS_PUBLIC_KEY ?? "9j-EqnDPmfSSvyuML";
+
+const getEmailJsErrorMessage = (error: unknown) => {
+  if (typeof error === "object" && error !== null) {
+    const maybeStatus = "status" in error ? (error as { status?: unknown }).status : undefined;
+    const maybeText = "text" in error ? (error as { text?: unknown }).text : undefined;
+    const maybeMessage =
+      "message" in error ? (error as { message?: unknown }).message : undefined;
+
+    if (typeof maybeText === "string" && maybeText.trim().length > 0) {
+      return maybeText;
+    }
+
+    if (typeof maybeMessage === "string" && maybeMessage.trim().length > 0) {
+      return maybeMessage;
+    }
+
+    if (typeof maybeStatus === "number") {
+      return `Email service returned status ${maybeStatus}.`;
+    }
+  }
+
+  return "Something went wrong while contacting EmailJS.";
+};
+
 const Contact = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -29,15 +59,15 @@ const Contact = () => {
 
     try {
       await emailjs.send(
-        "priya-public-school1822",
-        "template_9ihcm3w",
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
         {
           from_name: formData.name,
           from_email: formData.email,
           subject: formData.subject,
           message: formData.message,
         },
-        "9j-EqnDPmfSSvyuML"
+        EMAILJS_PUBLIC_KEY
       );
 
       toast({
@@ -46,9 +76,12 @@ const Contact = () => {
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
+      const errorMessage = getEmailJsErrorMessage(error);
+      console.error("EmailJS send failed:", error);
+
       toast({
         title: "Failed to send",
-        description: "Something went wrong. Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

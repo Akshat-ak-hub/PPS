@@ -71,3 +71,16 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## EmailJS setup for deployed site
+
+If contact form mail works locally but fails after deployment, verify EmailJS is configured for your deployed domain.
+
+1. Create `.env` from `.env.example` and fill values:
+	- `VITE_EMAILJS_SERVICE_ID`
+	- `VITE_EMAILJS_TEMPLATE_ID`
+	- `VITE_EMAILJS_PUBLIC_KEY`
+2. In EmailJS dashboard, add your deployed domain to allowed origins.
+3. Redeploy after updating environment variables.
+
+Note: The app currently falls back to hardcoded EmailJS IDs if env vars are not provided, but using env vars is recommended for safer deployments and easier rotation.
