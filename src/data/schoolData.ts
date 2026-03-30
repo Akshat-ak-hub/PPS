@@ -101,7 +101,7 @@ export const achievements = [
   },
   {
     icon: Award,
-    title: "23+ Years of Excellence",
+    title: "24+ Years of Excellence",
     description: "Delivering quality education with dedication and values",
     year: "Since 2002",
   },

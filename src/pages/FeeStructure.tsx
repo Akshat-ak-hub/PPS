@@ -1,17 +1,11 @@
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
-import {
-  feeStructure,
-  busTimings,
-  busFees,
-} from "@/data/schoolData";
-import { motion } from "framer-motion";
-import {
-  GraduationCap,
-  IndianRupee,
-  Bus,
-} from "lucide-react";
+import { feeStructure, busTimings, busFees } from "@/data/schoolData";
+import { motion, AnimatePresence } from "framer-motion";
+import { GraduationCap, IndianRupee, Bus } from "lucide-react";
+
+type ViewMode = "table" | "card";
 
 /* Color palette for fee cards */
 const colors = [
@@ -23,242 +17,229 @@ const colors = [
   { bg: "bg-teal-100", text: "text-teal-600" },
 ];
 
+const fadeUp = {
+  initial: { opacity: 0, y: 18 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -18 },
+  transition: { duration: 0.3 },
+};
+
+type ViewToggleProps = {
+  value: ViewMode;
+  onChange: (view: ViewMode) => void;
+};
+
+const ViewToggle = ({ value, onChange }: ViewToggleProps) => {
+  return (
+    <div className="mt-6 flex justify-end gap-2">
+      <button
+        onClick={() => onChange("table")}
+        aria-pressed={value === "table"}
+        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+          value === "table"
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+        }`}
+      >
+        Table View
+      </button>
+      <button
+        onClick={() => onChange("card")}
+        aria-pressed={value === "card"}
+        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+          value === "card"
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+        }`}
+      >
+        Card View
+      </button>
+    </div>
+  );
+};
+
 const FeeStructure = () => {
-  // Separate toggles
-  const [feeView, setFeeView] = useState<"table" | "card">("table");
-  const [busTimingView, setBusTimingView] =
-    useState<"table" | "card">("table");
-  const [busFeeView, setBusFeeView] =
-    useState<"table" | "card">("table");
+  const [feeView, setFeeView] = useState<ViewMode>("table");
+  const [busTimingView, setBusTimingView] = useState<ViewMode>("table");
+  const [busFeeView, setBusFeeView] = useState<ViewMode>("table");
 
   return (
     <Layout>
       <section className="pt-24 pb-16 bg-muted">
         <div className="container mx-auto px-4 lg:px-8">
-
           {/* ================= FEE STRUCTURE ================= */}
           <SectionHeading
             badge="Academics"
             title="Fee Structure"
-            subtitle="Class-wise school fee details"
+            subtitle="View class-wise admission and monthly tuition fee details."
           />
 
-          {/* Fee Toggle */}
-          <div className="mt-8 flex justify-end gap-2">
-            <button
-              onClick={() => setFeeView("table")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                feeView === "table"
-                  ? "bg-primary text-primary-foreground"
-                  : "border bg-muted"
-              }`}
-            >
-              Table View
-            </button>
-            <button
-              onClick={() => setFeeView("card")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                feeView === "card"
-                  ? "bg-primary text-primary-foreground"
-                  : "border bg-muted"
-              }`}
-            >
-              Card View
-            </button>
-          </div>
+          <ViewToggle value={feeView} onChange={setFeeView} />
 
-          {/* Fee Table */}
-          {feeView === "table" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 overflow-x-auto rounded-2xl border bg-card shadow-card"
-            >
-              <table className="w-full text-sm">
-                <thead className="bg-primary/90">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Class
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Admission Fee
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Tuition Fee (Monthly)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {feeStructure.map((fee, index) => (
-                    <tr
-                      key={index}
-                      className="border-b last:border-none hover:bg-muted/40"
-                    >
-                      <td className="px-6 py-4 font-medium">
-                        {fee.class}
-                      </td>
-                      <td className="px-6 py-4">
-                        {fee.admission}
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-primary">
-                        {fee.tuition}
-                      </td>
+          <AnimatePresence mode="wait">
+            {feeView === "table" ? (
+              <motion.div
+                key="fee-table"
+                {...fadeUp}
+                className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card shadow-card"
+              >
+                <table className="w-full text-sm">
+                  <thead className="bg-primary/90">
+                    <tr>
+                      <th className="px-6 py-4 text-left font-semibold text-white">
+                        Class
+                      </th>
+                      <th className="px-6 py-4 text-left font-semibold text-white">
+                        Admission Fee
+                      </th>
+                      <th className="px-6 py-4 text-left font-semibold text-white">
+                        Tuition Fee (Monthly)
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </motion.div>
-          )}
-
-          {/* Fee Cards */}
-          {feeView === "card" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              {feeStructure.map((fee, index) => {
-                const color = colors[index % colors.length];
-                return (
-                  <div
-                    key={index}
-                    className="rounded-2xl border bg-card p-6 shadow-card"
-                  >
-                    <div className="mb-4 flex items-center gap-3">
-                      <div className={`rounded-xl p-2 ${color.bg}`}>
-                        <GraduationCap
-                          className={`h-5 w-5 ${color.text}`}
-                        />
-                      </div>
-                      <h3
-                        className={`text-lg font-semibold ${color.text}`}
+                  </thead>
+                  <tbody>
+                    {feeStructure.map((fee, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-border last:border-none hover:bg-muted/40 transition-colors"
                       >
-                        {fee.class}
-                      </h3>
-                    </div>
-
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <IndianRupee className="h-4 w-4" />
-                          Admission Fee
-                        </span>
-                        <span className="font-medium">
-                          {fee.admission}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <IndianRupee className="h-4 w-4" />
-                          Tuition Fee
-                        </span>
-                        <span className="font-medium">
+                        <td className="px-6 py-4 font-medium">{fee.class}</td>
+                        <td className="px-6 py-4">{fee.admission}</td>
+                        <td className="px-6 py-4 font-semibold text-primary">
                           {fee.tuition}
-                        </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="fee-card"
+                {...fadeUp}
+                className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {feeStructure.map((fee, index) => {
+                  const color = colors[index % colors.length];
+                  return (
+                    <div
+                      key={index}
+                      className="rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                    >
+                      <div className="mb-4 flex items-center gap-3">
+                        <div className={`rounded-xl p-2 ${color.bg}`}>
+                          <GraduationCap className={`h-5 w-5 ${color.text}`} />
+                        </div>
+                        <h3 className={`text-lg font-semibold ${color.text}`}>
+                          {fee.class}
+                        </h3>
+                      </div>
+
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between gap-4">
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <IndianRupee className="h-4 w-4" />
+                            Admission Fee
+                          </span>
+                          <span className="font-medium">{fee.admission}</span>
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                          <span className="flex items-center gap-2 text-muted-foreground">
+                            <IndianRupee className="h-4 w-4" />
+                            Tuition Fee
+                          </span>
+                          <span className="font-medium">{fee.tuition}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </motion.div>
-          )}
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ================= BUS TIMINGS ================= */}
           <div className="mt-20">
             <SectionHeading
               badge="Transport"
               title="School Bus Timings"
-              subtitle="Pickup and drop timings"
+              subtitle="Check school bus pickup and drop timings."
             />
 
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setBusTimingView("table")}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  busTimingView === "table"
-                    ? "bg-primary text-primary-foreground"
-                    : "border bg-muted"
-                }`}
-              >
-                Table View
-              </button>
-              <button
-                onClick={() => setBusTimingView("card")}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  busTimingView === "card"
-                    ? "bg-primary text-primary-foreground"
-                    : "border bg-muted"
-                }`}
-              >
-                Card View
-              </button>
-            </div>
+            <ViewToggle value={busTimingView} onChange={setBusTimingView} />
 
-            {busTimingView === "table" && (
-              <div className="mt-8 overflow-x-auto rounded-2xl border bg-card shadow-card">
-                <table className="w-full text-sm">
-                  <thead className="bg-primary/90">
-                    <tr>
-                      <th className="px-6 py-4 text-white text-left">
-                        Pickup Point
-                      </th>
-                      <th className="px-6 py-4 text-white text-left">
-                        Morning
-                      </th>
-                      <th className="px-6 py-4 text-white text-left">
-                        Afternoon
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {busTimings.map((bus, index) => (
-                      <tr key={index} className="border-b">
-                        <td className="px-6 py-4 font-medium">
-                          {bus.place}
-                        </td>
-                        <td className="px-6 py-4">
-                          {bus.morning}
-                        </td>
-                        <td className="px-6 py-4">
-                          {bus.afternoon}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {busTimingView === "card" && (
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {busTimings.map((bus, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border bg-card p-6 shadow-card"
-                  >
-                    <h4 className="flex items-center gap-2 text-lg font-semibold text-primary mb-4">
-                      <Bus className="h-5 w-5" />
-                      {bus.place}
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
+            <AnimatePresence mode="wait">
+              {busTimingView === "table" ? (
+                <motion.div
+                  key="bus-timing-table"
+                  {...fadeUp}
+                  className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card shadow-card"
+                >
+                  <table className="w-full text-sm">
+                    <thead className="bg-primary/90">
+                      <tr>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
+                          Pickup Point
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
                           Morning
-                        </span>
-                        <span>{bus.morning}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
                           Afternoon
-                        </span>
-                        <span>{bus.afternoon}</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {busTimings.map((bus, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-border last:border-none hover:bg-muted/40 transition-colors"
+                        >
+                          <td className="px-6 py-4 font-medium">{bus.place}</td>
+                          <td className="px-6 py-4">{bus.morning}</td>
+                          <td className="px-6 py-4">{bus.afternoon}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="bus-timing-card"
+                  {...fadeUp}
+                  className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  {busTimings.map((bus, index) => {
+                    const color = colors[index % colors.length];
+                    return (
+                      <div
+                        key={index}
+                        className="rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                      >
+                        <h4 className="mb-4 flex items-center gap-2 text-lg font-semibold text-primary">
+                          <div className={`rounded-xl p-2 ${color.bg}`}>
+                            <Bus className={`h-5 w-5 ${color.text}`} />
+                          </div>
+                          {bus.place}
+                        </h4>
+
+                        <div className="space-y-3 text-sm">
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">Morning</span>
+                            <span className="font-medium">{bus.morning}</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">Afternoon</span>
+                            <span className="font-medium">{bus.afternoon}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* ================= BUS FEES ================= */}
@@ -266,99 +247,96 @@ const FeeStructure = () => {
             <SectionHeading
               badge="Transport"
               title="Bus Fee Structure"
-              subtitle="Monthly and yearly transport charges"
+              subtitle="See monthly and yearly transport fee details."
             />
 
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setBusFeeView("table")}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  busFeeView === "table"
-                    ? "bg-primary text-primary-foreground"
-                    : "border bg-muted"
-                }`}
-              >
-                Table View
-              </button>
-              <button
-                onClick={() => setBusFeeView("card")}
-                className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                  busFeeView === "card"
-                    ? "bg-primary text-primary-foreground"
-                    : "border bg-muted"
-                }`}
-              >
-                Card View
-              </button>
-            </div>
+            <ViewToggle value={busFeeView} onChange={setBusFeeView} />
 
-            {busFeeView === "table" && (
-              <div className="mt-8 overflow-x-auto rounded-2xl border bg-card shadow-card">
-                <table className="w-full text-sm">
-                  <thead className="bg-primary/90">
-                    <tr>
-                      <th className="px-6 py-4 text-white text-left">
-                        Pickup Point
-                      </th>
-                      <th className="px-6 py-4 text-white text-left">
-                        Monthly Fee
-                      </th>
-                      <th className="px-6 py-4 text-white text-left">
-                        Yearly Fee
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {busFees.map((fee, index) => (
-                      <tr key={index} className="border-b">
-                        <td className="px-6 py-4 font-medium">
-                          {fee.place}
-                        </td>
-                        <td className="px-6 py-4">
-                          {fee.monthly}
-                        </td>
-                        <td className="px-6 py-4 font-semibold text-primary">
-                          {fee.yearly}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {busFeeView === "card" && (
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {busFees.map((fee, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border bg-card p-6 shadow-card"
-                  >
-                    <h4 className="text-lg font-semibold text-primary mb-4">
-                      {fee.place}
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
+            <AnimatePresence mode="wait">
+              {busFeeView === "table" ? (
+                <motion.div
+                  key="bus-fee-table"
+                  {...fadeUp}
+                  className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card shadow-card"
+                >
+                  <table className="w-full text-sm">
+                    <thead className="bg-primary/90">
+                      <tr>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
+                          Pickup Point
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
                           Monthly Fee
-                        </span>
-                        <span>{fee.monthly}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-white">
                           Yearly Fee
-                        </span>
-                        <span className="font-semibold text-primary">
-                          {fee.yearly}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {busFees.map((fee, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-border last:border-none hover:bg-muted/40 transition-colors"
+                        >
+                          <td className="px-6 py-4 font-medium">{fee.place}</td>
+                          <td className="px-6 py-4">{fee.monthly}</td>
+                          <td className="px-6 py-4 font-semibold text-primary">
+                            {fee.yearly}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="bus-fee-card"
+                  {...fadeUp}
+                  className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  {busFees.map((fee, index) => {
+                    const color = colors[index % colors.length];
+                    return (
+                      <div
+                        key={index}
+                        className="rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                      >
+                        <div className="mb-4 flex items-center gap-3">
+                          <div className={`rounded-xl p-2 ${color.bg}`}>
+                            <IndianRupee className={`h-5 w-5 ${color.text}`} />
+                          </div>
+                          <h4 className="text-lg font-semibold text-primary">
+                            {fee.place}
+                          </h4>
+                        </div>
 
+                        <div className="space-y-3 text-sm">
+                          <div className="flex justify-between gap-4">
+                            <span className="flex items-center gap-2 text-muted-foreground">
+                              <IndianRupee className="h-4 w-4" />
+                              Monthly Fee
+                            </span>
+                            <span className="font-medium">{fee.monthly}</span>
+                          </div>
+
+                          <div className="flex justify-between gap-4">
+                            <span className="flex items-center gap-2 text-muted-foreground">
+                              <IndianRupee className="h-4 w-4" />
+                              Yearly Fee
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {fee.yearly}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </section>
     </Layout>
