@@ -79,7 +79,7 @@ const About = () => {
           <SectionHeading
             badge="What We Stand For"
             title="Our Core Values"
-            subtitle="The principles that guide everything we do at Greenwood Academy."
+            subtitle="The principles that guide everything we do at Priya Public School."
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

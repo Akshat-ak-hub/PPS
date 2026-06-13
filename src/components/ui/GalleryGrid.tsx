@@ -48,6 +48,17 @@ const GalleryGrid = ({ images }: GalleryGridProps) => {
               src={image.src}
               alt={image.title}
               loading="lazy"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = "none";
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement("div");
+                  fallback.className = "w-full h-full flex items-center justify-center bg-muted";
+                  fallback.innerHTML = `<span class="text-muted-foreground text-sm font-medium">${image.title}</span>`;
+                  parent.appendChild(fallback);
+                }
+              }}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">

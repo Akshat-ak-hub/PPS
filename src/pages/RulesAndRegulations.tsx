@@ -17,7 +17,7 @@ const sections = [
   {
     icon: BookOpen,
     title: "Academic Rules",
-    color: "bg-blue-500/10 text-blue-600",
+    color: "bg-primary/10 text-primary",
     rules: [
       "Students should complete homework and assignments on time.",
       "Notebooks should be kept neat and brought to school regularly.",
@@ -30,7 +30,7 @@ const sections = [
   {
     icon: Clock,
     title: "Attendance & Punctuality",
-    color: "bg-amber-500/10 text-amber-600",
+    color: "bg-secondary/10 text-secondary-foreground",
     rules: [
       "Students should arrive at school on time every day.",
       "Regular attendance is important for good learning.",
@@ -43,7 +43,7 @@ const sections = [
   {
     icon: Shirt,
     title: "Uniform & Appearance",
-    color: "bg-purple-500/10 text-purple-600",
+    color: "bg-accent/10 text-accent",
     rules: [
       "Students must wear the proper school uniform on school days.",
       "The uniform should be clean and worn properly.",
@@ -56,7 +56,7 @@ const sections = [
   {
     icon: ShieldCheck,
     title: "General Conduct",
-    color: "bg-green-500/10 text-green-600",
+    color: "bg-primary/20 text-primary",
     rules: [
       "Students should respect teachers, staff, and other students.",
       "Bullying, rude behavior, or bad language is not allowed.",
@@ -69,7 +69,7 @@ const sections = [
   {
     icon: AlertTriangle,
     title: "Discipline",
-    color: "bg-red-500/10 text-red-600",
+    color: "bg-destructive/10 text-destructive",
     rules: [
       "Repeated misbehavior may lead to disciplinary action.",
       "Students should not damage school property.",
@@ -81,7 +81,7 @@ const sections = [
   {
     icon: IndianRupee,
     title: "Fee Rules",
-    color: "bg-orange-500/10 text-orange-600",
+    color: "bg-secondary/20 text-secondary-foreground",
     rules: [
       "School fees should be paid on time.",
       "Parents should keep fee receipts safely for future use.",
@@ -92,7 +92,7 @@ const sections = [
   {
     icon: Wrench,
     title: "Use of School Property",
-    color: "bg-teal-500/10 text-teal-600",
+    color: "bg-accent/20 text-accent",
     rules: [
       "Students should use school furniture, books, and equipment carefully.",
       "Library books should be returned on time.",
@@ -105,7 +105,7 @@ const sections = [
   {
     icon: HeartPulse,
     title: "Health & Safety",
-    color: "bg-pink-500/10 text-pink-600",
+    color: "bg-primary/5 text-primary",
     rules: [
       "Students who are unwell should stay at home and inform the school.",
       "Parents should inform the school about any medical condition or allergy.",

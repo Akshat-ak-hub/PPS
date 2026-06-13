@@ -4,9 +4,9 @@ export const schoolInfo = {
   name: "Priya Public School",
   tagline: "Nurturing Minds, Building Futures",
   founded: 2002,
-  address: " Panner, Solan, Himachal Pradesh",
-  phone: "+91 9882062560 , +91 8091227060",
-  email: "kakshat349@gmail.com  gurdev1014@gmail.com",
+  address: "Panner, Solan, Himachal Pradesh",
+  phone: "+91 9882062560, +91 8091227060",
+  email: "kakshat349@gmail.com",
   hours: "Mon - Sat: 7:30 AM - 4:00 PM",
 };
 
@@ -91,7 +91,7 @@ export const achievements = [
     icon: Users,
     title: "100+ Happy Students",
     description: "Students making an impact in their communities",
-    year: "Since 2002   ",
+    year: "Since 2002",
   },
   {
     icon: BookOpen,

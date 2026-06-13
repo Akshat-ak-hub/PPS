@@ -5,14 +5,14 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import GalleryGrid from "@/components/ui/GalleryGrid";
 
 // Import gallery images
-import scienceLab from "@/assets/gallery/science-lab.jpg";
-import library from "@/assets/gallery/library.jpg";
-import sportsDay from "@/assets/gallery/sports-day.jpg";
-import graduation from "@/assets/gallery/graduation.jpg";
-import artExhibition from "@/assets/gallery/art-exhibition.jpg";
-import musicPerformance from "@/assets/gallery/music-performance.jpg";
-import classroom from "@/assets/gallery/classroom.jpg";
-import outdoorActivities from "@/assets/gallery/outdoor-activities.jpg";
+import scienceLab from "@/assets/gallery/science-lab.svg";
+import library from "@/assets/gallery/library.svg";
+import sportsDay from "@/assets/gallery/sports-day.svg";
+import graduation from "@/assets/gallery/graduation.svg";
+import artExhibition from "@/assets/gallery/art-exhibition.svg";
+import musicPerformance from "@/assets/gallery/music-performance.svg";
+import classroom from "@/assets/gallery/classroom.svg";
+import outdoorActivities from "@/assets/gallery/outdoor-activities.svg";
 
 const galleryImages = [
   { id: 1, title: "Science Lab", category: "Facilities", src: scienceLab },

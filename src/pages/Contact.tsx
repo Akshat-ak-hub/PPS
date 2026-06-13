@@ -7,35 +7,14 @@ import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { schoolInfo } from "@/data/schoolData";
 
-const EMAILJS_SERVICE_ID =
-  import.meta.env.VITE_EMAILJS_SERVICE_ID ?? "priya-public-school1822";
-const EMAILJS_TEMPLATE_ID =
-  import.meta.env.VITE_EMAILJS_TEMPLATE_ID ?? "template_9ihcm3w";
-const EMAILJS_PUBLIC_KEY =
-  import.meta.env.VITE_EMAILJS_PUBLIC_KEY ?? "9j-EqnDPmfSSvyuML";
-
-const getEmailJsErrorMessage = (error: unknown) => {
-  if (typeof error === "object" && error !== null) {
-    const maybeStatus = "status" in error ? (error as { status?: unknown }).status : undefined;
-    const maybeText = "text" in error ? (error as { text?: unknown }).text : undefined;
-    const maybeMessage =
-      "message" in error ? (error as { message?: unknown }).message : undefined;
-
-    if (typeof maybeText === "string" && maybeText.trim().length > 0) {
-      return maybeText;
-    }
-
-    if (typeof maybeMessage === "string" && maybeMessage.trim().length > 0) {
-      return maybeMessage;
-    }
-
-    if (typeof maybeStatus === "number") {
-      return `Email service returned status ${maybeStatus}.`;
-    }
-  }
-
-  return "Something went wrong while contacting EmailJS.";
+const emailjsConfig = {
+  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
 };
+
+const isEmailJsConfigured =
+  emailjsConfig.serviceId && emailjsConfig.templateId && emailjsConfig.publicKey;
 
 const Contact = () => {
   const { toast } = useToast();
@@ -55,19 +34,29 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isEmailJsConfigured) {
+      toast({
+        title: "Email not configured",
+        description: "Please set VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, and VITE_EMAILJS_PUBLIC_KEY in your .env file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
+        emailjsConfig.serviceId!,
+        emailjsConfig.templateId!,
         {
           from_name: formData.name,
           from_email: formData.email,
           subject: formData.subject,
           message: formData.message,
         },
-        EMAILJS_PUBLIC_KEY
+        emailjsConfig.publicKey!
       );
 
       toast({
@@ -75,13 +64,10 @@ const Contact = () => {
         description: "Thank you for contacting us. We'll get back to you soon.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
-      const errorMessage = getEmailJsErrorMessage(error);
-      console.error("EmailJS send failed:", error);
-
+    } catch {
       toast({
         title: "Failed to send",
-        description: errorMessage,
+        description: "Email service error. Please contact us directly at " + schoolInfo.phone + " or " + schoolInfo.email.split(" ")[0],
         variant: "destructive",
       });
     } finally {
@@ -294,7 +280,7 @@ const Contact = () => {
                 href="https://wa.me/919882062560"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white rounded-2xl p-5 shadow-card transition-colors"
+                className="flex items-center gap-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl p-5 shadow-card transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="w-8 h-8 fill-white flex-shrink-0">
                   <path d="M16 0C7.164 0 0 7.163 0 16c0 2.82.736 5.463 2.02 7.755L0 32l8.489-2.225A15.93 15.93 0 0016 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm0 29.333a13.27 13.27 0 01-6.762-1.847l-.484-.287-5.037 1.321 1.344-4.905-.317-.503A13.267 13.267 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.26-9.906c-.397-.199-2.349-1.159-2.714-1.292-.364-.132-.63-.199-.895.199-.265.397-1.028 1.292-1.26 1.557-.232.265-.464.298-.861.1-.397-.199-1.674-.617-3.188-1.969-1.178-1.05-1.974-2.348-2.205-2.745-.232-.397-.025-.612.174-.809.178-.178.397-.464.596-.696.199-.232.265-.397.397-.662.132-.265.066-.497-.033-.696-.1-.199-.895-2.158-1.226-2.954-.323-.777-.65-.671-.895-.683l-.762-.013c-.265 0-.696.1-1.06.497-.364.397-1.39 1.359-1.39 3.313 0 1.955 1.424 3.843 1.623 4.108.199.265 2.803 4.278 6.791 5.996.95.41 1.69.654 2.268.838.952.303 1.819.26 2.504.158.763-.114 2.349-.96 2.68-1.887.332-.928.332-1.723.232-1.888-.099-.165-.364-.265-.762-.464z"/>

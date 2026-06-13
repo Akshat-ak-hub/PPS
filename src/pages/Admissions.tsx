@@ -4,7 +4,7 @@ import { ArrowRight, Download, Calendar, Clock } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { admissionSteps, importantDates } from "@/data/schoolData";
-import form from "@/assets/Priya_Public_School_Admission_Form (3).pdf";
+import form from "@/assets/admission-form.pdf";
 
 const Admissions = () => {
   return (
@@ -192,22 +192,21 @@ const Admissions = () => {
           />
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/apply-online">
-              <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-card">
+            <Link
+              to="/apply-online"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+            >
               Apply Online
               <ArrowRight className="w-5 h-5" />
-            </button>
             </Link>
             <a
               href={form}
               download
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card text-foreground font-semibold rounded-xl border border-border hover:bg-muted hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             >
-              <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card text-foreground font-semibold rounded-xl border border-border hover:bg-muted transition-colors shadow-card">
-                <Download className="w-5 h-5" />
-                Download Form (PDF)
-              </button>
+              <Download className="w-5 h-5" />
+              Download Form (PDF)
             </a>
-
           </div>
 
           <p className="text-muted-foreground mt-6">

@@ -3,7 +3,7 @@ import myImage from "../../assets/logo.png"
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -20,6 +20,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -41,11 +42,11 @@ const Navbar = () => {
           : "bg-card border-b border-border"
       )}
     >
-      <nav className="container mx-auto px-4 lg:px-8">
+      <nav className="container mx-auto px-4 lg:px-8" aria-label="Main navigation">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105 ">
+          <Link to="/" className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4 rounded-lg">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
               <img src={myImage} alt="Logo" />
             </div>
             <div className="hidden sm:block">
@@ -62,8 +63,9 @@ const Navbar = () => {
               <li key={link.name}>
                 <Link
                   to={link.href}
+                  aria-current={location.pathname === link.href ? "page" : undefined}
                   className={cn(
-                    "relative px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+                    "relative px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
                     location.pathname === link.href
                       ? "text-primary"
                       : "text-foreground hover:text-primary hover:bg-muted"
@@ -84,7 +86,8 @@ const Navbar = () => {
           {/* CTA Button */}
           <Link
             to="/admissions"
-            className="hidden lg:inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-xl hover:opacity-90 transition-opacity shadow-card"
+            aria-label="Apply for admission"
+            className="hidden lg:inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
           >
             Apply Now
           </Link>
@@ -92,14 +95,11 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors text-foreground"
+            className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors text-foreground focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             aria-label="Toggle menu"
+            aria-expanded={isOpen}
           >
-            {isOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </nav>
@@ -108,10 +108,10 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, maxHeight: 0 }}
+            animate={{ opacity: 1, maxHeight: 500 }}
+            exit={{ opacity: 0, maxHeight: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="lg:hidden bg-card border-b border-border overflow-hidden"
           >
             <div className="container mx-auto px-4 py-4">
@@ -125,8 +125,9 @@ const Navbar = () => {
                   >
                     <Link
                       to={link.href}
+                      aria-current={location.pathname === link.href ? "page" : undefined}
                       className={cn(
-                        "block px-4 py-3 rounded-lg font-medium transition-colors",
+                        "block px-4 py-3 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
                         location.pathname === link.href
                           ? "bg-primary text-primary-foreground"
                           : "text-foreground hover:bg-muted"
@@ -141,7 +142,7 @@ const Navbar = () => {
               <div className="mt-4 pt-4 border-t border-border">
                 <Link
                   to="/admissions"
-                  className="block w-full text-center px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-opacity"
+                  className="block w-full text-center px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
                 >
                   Apply Now
                 </Link>

@@ -7,7 +7,7 @@ import QuickLinkCard from "@/components/ui/QuickLinkCard";
 import AnnouncementCarousel from "@/components/ui/AnnouncementCarousel";
 import { quickLinks, schoolInfo } from "@/data/schoolData";
 import heroCampus from "@/assets/hero-campus.jpg";
-import principalImg from "@/assets/principal.jpg";
+import principalImg from "@/assets/principal.webp";
 
 const stats = [
   { icon: Users, value: "100+", label: "Happy Students" },

@@ -138,6 +138,11 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
+  *:focus-visible {
+    @apply outline-2 outline-primary outline-offset-2;
+    outline-style: solid;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-semibold tracking-tight;
   }

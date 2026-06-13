@@ -26,7 +26,7 @@ const Footer = () => {
     { name: "Fee Structure", href: "/fee-structure" },
     { name: "Online Application", href: "/apply-online" },
     { name: "Rules & Regulations", href: "/rules-and-regulations" },
-    { name: "Academic Calendar", href: "/calendar" },
+    { name: "Why Choose Us", href: "/about" },
   ];
 
   const socialLinks = [
@@ -65,7 +65,7 @@ const Footer = () => {
                   target="_blank"
                   key={social.label}
                   href={social.href}
-                  className="w-10 h-10 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition"
+                  className="w-10 h-10 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 hover:scale-110 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
                   aria-label={social.label}
                 >
                   <social.icon className="w-5 h-5" />
@@ -84,7 +84,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-sm opacity-80 hover:opacity-100 transition"
+                    className="text-sm opacity-80 hover:opacity-100 transition focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
                   >
                     {link.name}
                   </Link>
@@ -103,7 +103,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-sm opacity-80 hover:opacity-100 transition"
+                    className="text-sm opacity-80 hover:opacity-100 transition focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
                   >
                     {link.name}
                   </Link>
@@ -148,17 +148,17 @@ const Footer = () => {
             </p>
             <div className="flex gap-6">
               <Link
-                to="/privacy-policy"
-                className="text-sm opacity-70 hover:opacity-100 transition"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="/terms"
-                className="text-sm opacity-70 hover:opacity-100 transition"
-              >
-                Terms & Conditions
-              </Link>
+                  to="/contact"
+                  className="text-sm opacity-70 hover:opacity-100 transition focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+                >
+                  Contact Us
+                </Link>
+                <Link
+                  to="/rules-and-regulations"
+                  className="text-sm opacity-70 hover:opacity-100 transition focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 rounded"
+                >
+                  School Policy
+                </Link>
             </div>
           </div>
         </div>
