@@ -1,20 +1,4 @@
-const express = require("express");
-const cors = require("cors");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const app = express();
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
-
-const PORT = process.env.PORT || 3001;
-const API_KEY = process.env.GEMINI_API_KEY;
-
-if (!API_KEY) {
-  console.error("Missing GEMINI_API_KEY. Set it in your environment or .env file.");
-  process.exit(1);
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const SYSTEM_PROMPT = `You are the official AI assistant for Priya Public School.
 
@@ -118,7 +102,16 @@ function buildGeminiHistory(messages) {
   return history;
 }
 
-app.post("/api/chat", async (req, res) => {
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const API_KEY = process.env.GEMINI_API_KEY;
+  if (!API_KEY) {
+    return res.status(500).json({ error: "Gemini API key not configured" });
+  }
+
   try {
     const { messages } = req.body;
 
@@ -131,6 +124,7 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Last message must be from user" });
     }
 
+    const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: SYSTEM_PROMPT,
@@ -141,16 +135,12 @@ app.post("/api/chat", async (req, res) => {
     const result = await chat.sendMessage(lastMessage.content);
     const responseText = result.response.text();
 
-    res.json({ response: responseText });
+    return res.json({ response: responseText });
   } catch (err) {
     console.error("Gemini API error:", err.message);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Failed to get response from AI",
       detail: err.message,
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Dev server running on http://localhost:${PORT}`);
-});
+}
