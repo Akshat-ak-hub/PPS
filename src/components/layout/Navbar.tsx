@@ -17,7 +17,7 @@ const navLinks = [
 ];
 
 const aiLinks = [
-  { name: "Ask AI", href: "/ask-ai" },
+  { name: "Ask AI", href: "/ai" },
 ];
 
 const Navbar = () => {
@@ -90,7 +90,7 @@ const Navbar = () => {
 
           {/* Ask AI Link */}
           <Link
-            to="/ask-ai"
+            to="/ai"
             className="hidden xl:inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-semibold text-sm rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
           >
             <MessageCircle className="w-4 h-4" />
@@ -155,7 +155,7 @@ const Navbar = () => {
 
               <div className="mt-4 pt-4 border-t border-border space-y-2">
                 <Link
-                  to="/ask-ai"
+                  to="/ai"
                   className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-secondary text-secondary-foreground font-semibold rounded-xl hover:opacity-90 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
                 >
                   <MessageCircle className="w-4 h-4" />

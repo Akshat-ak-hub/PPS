@@ -582,6 +582,58 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
+app.post("/api/chat/stream", async (req, res) => {
+  try {
+    const { messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "Messages array is required" });
+    }
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role !== "user") {
+      return res.status(400).json({ error: "Last message must be from user" });
+    }
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: SYSTEM_PROMPT,
+    });
+
+    const chatHistory = buildGeminiHistory(messages.slice(0, -1));
+    const chat = model.startChat({ history: chatHistory });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    let streamResult;
+    if (lastMessage.image) {
+      streamResult = await chat.sendMessageStream([
+        { text: lastMessage.content || "What is in this image?" },
+        { inlineData: { mimeType: lastMessage.image.mimeType, data: lastMessage.image.data } }
+      ]);
+    } else {
+      streamResult = await chat.sendMessageStream(lastMessage.content);
+    }
+
+    for await (const chunk of streamResult.stream) {
+      const chunkText = chunk.text();
+      if (chunkText) {
+        res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
+      }
+    }
+
+    res.write(`data: [DONE]\n\n`);
+    res.end();
+  } catch (err) {
+    console.error("Gemini stream error:", err.message);
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Dev server running on http://localhost:${PORT}`);
 });

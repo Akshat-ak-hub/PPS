@@ -15,6 +15,7 @@ const Gallery = lazy(() => import("./pages/Gallery"));
 const OnlineApplication = lazy(() => import("./pages/OnlineApplication"));
 const RulesAndRegulations = lazy(() => import("./pages/RulesAndRegulations"));
 const AskAI = lazy(() => import("./pages/AskAI"));
+const AITutor = lazy(() => import("./pages/AITutor"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/apply-online" element={<OnlineApplication />} />
             <Route path="/rules-and-regulations" element={<RulesAndRegulations />} />
             <Route path="/ask-ai" element={<AskAI />} />
+            <Route path="/ai" element={<AITutor />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

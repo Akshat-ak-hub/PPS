@@ -39,7 +39,7 @@ function fileToBase64(file: File): Promise<string> {
 export default function ChatBot() {
   const { isOpen, toggle, close } = useChatBot();
   const location = useLocation();
-  if (location.pathname === "/ask-ai") return null;
+  if (location.pathname === "/ask-ai" || location.pathname === "/ai") return null;
 
   const [messages, setMessages] = useState<Message[]>([
     { id: "welcome", role: "assistant", content: WELCOME_MESSAGE, links: [] }
