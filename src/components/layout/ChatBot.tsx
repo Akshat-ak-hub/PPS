@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -38,6 +38,9 @@ function fileToBase64(file: File): Promise<string> {
 
 export default function ChatBot() {
   const { isOpen, toggle, close } = useChatBot();
+  const location = useLocation();
+  if (location.pathname === "/ask-ai") return null;
+
   const [messages, setMessages] = useState<Message[]>([
     { id: "welcome", role: "assistant", content: WELCOME_MESSAGE, links: [] }
   ]);
