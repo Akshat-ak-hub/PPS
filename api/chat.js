@@ -535,7 +535,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages } = req.body;
+    let body = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        return res.status(400).json({ error: "Request body is not valid JSON" });
+      }
+    }
+    const { messages } = body || {};
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -568,10 +576,12 @@ export default async function handler(req, res) {
 
     return res.json({ response: responseText });
   } catch (err) {
-    console.error("Gemini API error:", err.message);
+    console.error("Gemini API error:", err);
     return res.status(500).json({
       error: "Failed to get response from AI",
       detail: err.message,
+      name: err.name,
+      stack: (err.stack || "").split("\n").slice(0, 4).join(" | "),
     });
   }
 }
