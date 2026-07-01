@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Send, Sparkles, Bot, MessageCircle, History, Trash2, Mic, MicOff, Menu, X
+  Send, Sparkles, MessageCircle, History, Settings, Mic, MicOff,
+  Home, Paperclip, Trash2, Plus, Bot, X, ChevronLeft
 } from "lucide-react";
-import Layout from "@/components/layout/Layout";
-import SectionHeading from "@/components/ui/SectionHeading";
 import ChatBubble from "@/components/ai/ChatBubble";
-import ImageUploader from "@/components/ai/ImageUploader";
+import MarkdownRenderer from "@/components/ai/MarkdownRenderer";
 
 interface Message {
   id: string;
@@ -36,10 +35,6 @@ const quickTopics = [
   { label: "Fee Structure 💰", query: "What are the tuition fees for all classes?" },
   { label: "Bus Routes 🚌", query: "What are the bus routes and timings?" },
   { label: "School Rules 📜", query: "What are the school rules and regulations?" },
-  { label: "Contact 📞", query: "What are the school contact details?" },
-  { label: "Events 🎉", query: "What are the upcoming school events?" },
-  { label: "Faculty 👨‍🏫", query: "Who are the teachers and staff members?" },
-  { label: "Facilities 🏫", query: "What facilities does the school offer?" }
 ];
 
 let sessionCounter = 0;
@@ -53,16 +48,17 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
 const AITutor = () => {
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     const saved = localStorage.getItem("ai-tutor-sessions");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        sessionCounter = parsed.length;
-        return parsed;
-      } catch { /* ignore */ }
-    }
+    if (saved) { try { const p = JSON.parse(saved); sessionCounter = p.length; return p; } catch {} }
     return [];
   });
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -70,79 +66,57 @@ const AITutor = () => {
   const [isWaiting, setIsWaiting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
   const [streamingContent, setStreamingContent] = useState("");
+  const [sidebarTab, setSidebarTab] = useState<"chat" | "history">("chat");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  useEffect(() => {
-    localStorage.setItem("ai-tutor-sessions", JSON.stringify(sessions));
-  }, [sessions]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [sessions, activeSessionId, isWaiting, streamingContent]);
+  useEffect(() => { localStorage.setItem("ai-tutor-sessions", JSON.stringify(sessions)); }, [sessions]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [sessions, activeSessionId, isWaiting, streamingContent]);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
   const messages = activeSession?.messages || [];
+  const hasMessages = messages.length > 1;
 
   const createNewSession = useCallback(() => {
     sessionCounter++;
     const newSession: ChatSession = {
       id: crypto.randomUUID(),
       title: `Chat ${sessionCounter}`,
-      messages: [
-        { id: "welcome", role: "assistant", content: WELCOME_MESSAGE, links: [] }
-      ],
+      messages: [{ id: "welcome", role: "assistant", content: WELCOME_MESSAGE, links: [] }],
     };
     setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
-    setShowSidebar(false);
   }, []);
 
   useEffect(() => {
-    if (sessions.length === 0) {
-      createNewSession();
-    } else if (!activeSessionId) {
-      setActiveSessionId(sessions[0].id);
-    }
+    if (sessions.length === 0) createNewSession();
+    else if (!activeSessionId) setActiveSessionId(sessions[0].id);
   }, [sessions.length, activeSessionId, createNewSession]);
 
   const deleteSession = (id: string) => {
     setSessions((prev) => prev.filter((s) => s.id !== id));
     if (activeSessionId === id) {
       const remaining = sessions.filter((s) => s.id !== id);
-      if (remaining.length > 0) {
-        setActiveSessionId(remaining[0].id);
-      } else {
-        setActiveSessionId(null);
-        createNewSession();
-      }
+      if (remaining.length > 0) setActiveSessionId(remaining[0].id);
+      else { setActiveSessionId(null); createNewSession(); }
     }
   };
 
   const clearAllSessions = () => {
-    setSessions([]);
-    setActiveSessionId(null);
-    setStreamingContent("");
-    createNewSession();
+    setSessions([]); setActiveSessionId(null); setStreamingContent(""); createNewSession();
   };
 
   const updateSessionMessages = (sessionId: string, newMessages: Message[]) => {
-    setSessions((prev) =>
-      prev.map((s) => (s.id === sessionId ? { ...s, messages: newMessages } : s))
-    );
+    setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, messages: newMessages } : s));
     if (newMessages.length > 2) {
       const lastUserMsg = [...newMessages].reverse().find((m) => m.role === "user");
       if (lastUserMsg) {
-        const title = lastUserMsg.content.length > 30
-          ? lastUserMsg.content.slice(0, 30) + "..."
-          : lastUserMsg.content;
-        setSessions((prev) =>
-          prev.map((s) => (s.id === sessionId ? { ...s, title } : s))
-        );
+        const title = lastUserMsg.content.length > 30 ? lastUserMsg.content.slice(0, 30) + "..." : lastUserMsg.content;
+        setSessions((prev) => prev.map((s) => s.id === sessionId ? { ...s, title } : s));
       }
     }
   };
@@ -152,16 +126,9 @@ const AITutor = () => {
     const linkRegex = /Links:\s*[\s\S]*/i;
     const match = content.match(linkRegex);
     if (match) {
-      const linksSection = match[0];
-      const items = linksSection.match(/\[([^\]|]+)\|([^\]]+)\]/g);
-      if (items) {
-        items.forEach((item) => {
-          const parts = item.slice(1, -1).split("|");
-          if (parts.length === 2) {
-            links.push({ label: parts[0].trim(), url: parts[1].trim() });
-          }
-        });
-      }
+      const sect = match[0];
+      const items = sect.match(/\[([^\]|]+)\|([^\]]+)\]/g);
+      if (items) items.forEach((item) => { const p = item.slice(1, -1).split("|"); if (p.length === 2) links.push({ label: p[0].trim(), url: p[1].trim() }); });
       return { text: content.replace(linkRegex, "").trim(), links };
     }
     return { text: content, links };
@@ -175,11 +142,8 @@ const AITutor = () => {
     const conversation: ConversationMessage[] = messages
       .filter((m) => m.id !== "welcome")
       .map((m) => ({ role: m.role, content: m.content }));
-
     const userMsg: ConversationMessage = { role: "user", content: userContent };
-    if (imageData && imageMimeType) {
-      userMsg.image = { mimeType: imageMimeType, data: imageData };
-    }
+    if (imageData && imageMimeType) userMsg.image = { mimeType: imageMimeType, data: imageData };
     conversation.push(userMsg);
 
     try {
@@ -188,322 +152,339 @@ const AITutor = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: conversation }),
       });
-
       if (!res.ok) throw new Error(`Server error ${res.status}`);
-
       const data = await res.json();
       const fullText = data.response;
       const { text, links } = parseLinks(fullText);
-
       const words = (text || fullText).split(" ");
       let idx = 0;
-      const typeInterval = setInterval(() => {
-        if (idx < words.length) {
-          setStreamingContent(words.slice(0, idx + 1).join(" "));
-          idx++;
-        } else {
-          clearInterval(typeInterval);
-          setStreamingContent("");
-          const newMsgs = [
-            ...messages,
-            { id: crypto.randomUUID(), role: "assistant" as const, content: text || fullText, links }
-          ];
-          updateSessionMessages(activeSessionId, newMsgs);
-          setIsWaiting(false);
-        }
+      const ti = setInterval(() => {
+        if (idx < words.length) { setStreamingContent(words.slice(0, idx + 1).join(" ")); idx++; }
+        else { clearInterval(ti); setStreamingContent(""); updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: text || fullText, links }]); setIsWaiting(false); }
       }, 40);
-    } catch (err) {
-      console.error("Chatbot error:", err);
-      const newMsgs = [
-        ...messages,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant" as const,
-          content: "Sorry, I'm currently unable to answer. Please try again later.",
-          links: []
-        }
-      ];
-      updateSessionMessages(activeSessionId, newMsgs);
+    } catch {
+      updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: "Sorry, I'm currently unable to answer. Please try again later.", links: [] }]);
       setIsWaiting(false);
-    } finally {
-      inputRef.current?.focus();
-    }
+    } finally { inputRef.current?.focus(); }
   }, [activeSessionId, messages]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if ((!trimmed && !selectedImage) || isWaiting || !activeSessionId) return;
-
-    let imageDataUrl: string | undefined;
-    let rawImageData: string | undefined;
-    let imageMimeType: string | undefined;
-
+    let imageDataUrl: string | undefined, rawImageData: string | undefined, imageMimeType: string | undefined;
     if (selectedImage) {
       const dataUrl = await fileToBase64(selectedImage.file);
-      imageDataUrl = dataUrl;
-      rawImageData = dataUrl.split(",")[1];
-      imageMimeType = selectedImage.file.type;
-      URL.revokeObjectURL(selectedImage.preview);
-      setSelectedImage(null);
+      imageDataUrl = dataUrl; rawImageData = dataUrl.split(",")[1]; imageMimeType = selectedImage.file.type;
+      URL.revokeObjectURL(selectedImage.preview); setSelectedImage(null);
     }
-
-    const userMsg: Message = {
-      id: crypto.randomUUID(), role: "user", content: trimmed, links: [], image: imageDataUrl
-    };
-    const newMsgs = [...messages, userMsg];
-    updateSessionMessages(activeSessionId, newMsgs);
+    updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "user", content: trimmed, links: [], image: imageDataUrl }]);
     setInput("");
     handleQuery(trimmed, rawImageData, imageMimeType);
   };
 
   const handleQuickReply = (label: string, query: string) => {
     if (isWaiting || !activeSessionId) return;
-    const userMsg: Message = {
-      id: crypto.randomUUID(), role: "user", content: label, links: []
-    };
-    const newMsgs = [...messages, userMsg];
-    updateSessionMessages(activeSessionId, newMsgs);
+    updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "user", content: label, links: [] }]);
     setInput("");
     handleQuery(query);
   };
 
   const startVoiceInput = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Voice input is not supported in your browser. Try Chrome or Edge.");
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert("Voice input not supported. Try Chrome."); return; }
+    if (isListening) { recognitionRef.current?.stop(); setIsListening(false); return; }
+    const recognition = new SR();
+    recognition.lang = "en-US"; recognition.interimResults = false;
     recognitionRef.current = recognition;
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput((prev) => prev + transcript);
-    };
+    recognition.onresult = (e: any) => setInput((p) => p + e.results[0][0].transcript);
     recognition.onend = () => setIsListening(false);
     recognition.onerror = () => setIsListening(false);
-
-    recognition.start();
-    setIsListening(true);
+    recognition.start(); setIsListening(true);
   };
 
-  const handleImageSelect = (file: File) => {
-    const preview = URL.createObjectURL(file);
-    setSelectedImage({ file, preview });
-  };
-
-  const handleImageRemove = () => {
-    if (selectedImage) {
-      URL.revokeObjectURL(selectedImage.preview);
-      setSelectedImage(null);
-    }
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("Image must be under 5MB"); return; }
+    if (!file.type.startsWith("image/")) { alert("Only images allowed"); return; }
+    setSelectedImage({ file, preview: URL.createObjectURL(file) });
+    e.target.value = "";
   };
 
   const currentStreaming = streamingContent || null;
+  const greeting = getGreeting();
+
+  const recentSessions = sessions.filter((s) => s.messages.length > 1).slice(0, 4);
 
   return (
-    <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row pt-16">
-        {/* Sidebar */}
-        <AnimatePresence mode="wait">
-          {showSidebar && (
-            <motion.aside
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="w-full lg:w-72 shrink-0 bg-muted/50 border-b lg:border-b-0 lg:border-r border-border flex flex-col"
+    <div className="min-h-screen bg-[#F4F4F5] font-sans antialiased">
+      {/* Hide Navbar/Footer via full-screen layout */}
+      <div className="max-w-[1440px] mx-auto p-4 h-screen max-h-screen flex items-center">
+        <div className="w-full h-full bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] overflow-hidden flex">
+          
+          {/* ─── Sidebar ─── */}
+          <aside className="w-[76px] shrink-0 bg-white border-r border-[#E5E7EB] flex flex-col items-center py-5 gap-1">
+            <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center mb-6 shrink-0">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+
+            <button
+              onClick={() => setSidebarTab("chat")}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                sidebarTab === "chat" ? "bg-violet-50 text-violet-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              }`}
+              title="Chat"
             >
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <History className="w-4 h-4 text-primary" />
-                  Chat History
-                </h2>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={clearAllSessions}
-                    className="p-1.5 hover:bg-background rounded-lg text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-                    aria-label="Clear all chats"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setShowSidebar(false)}
-                    className="p-1.5 hover:bg-background rounded-lg text-muted-foreground hover:text-foreground transition-colors lg:hidden cursor-pointer"
-                    aria-label="Close sidebar"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                {sessions.map((session) => (
-                  <button
-                    key={session.id}
-                    onClick={() => { setActiveSessionId(session.id); setShowSidebar(false); }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all cursor-pointer group ${
-                      session.id === activeSessionId
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-foreground hover:bg-background"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="truncate font-medium flex items-center gap-2">
-                        <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-                        {session.title}
-                      </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }}
-                        className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0 ${
-                          session.id === activeSessionId
-                            ? "hover:bg-white/20 text-white/80"
-                            : "hover:bg-muted text-muted-foreground"
-                        }`}
-                        aria-label="Delete chat"
-                      >
-                        <X className="w-3 h-3" />
+              <MessageCircle className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => setSidebarTab("history")}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                sidebarTab === "history" ? "bg-violet-50 text-violet-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              }`}
+              title="History"
+            >
+              <History className="w-5 h-5" />
+            </button>
+
+            <div className="flex-1" />
+
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              P
+            </div>
+          </aside>
+
+          {/* ─── Main Content ─── */}
+          <div className="flex-1 flex flex-col min-w-0">
+            
+            {/* History panel overlay */}
+            <AnimatePresence>
+              {sidebarTab === "history" && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute left-[76px] top-0 bottom-0 w-72 bg-white border-r border-[#E5E7EB] z-10 shadow-lg flex flex-col"
+                >
+                  <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
+                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <History className="w-4 h-4 text-violet-600" />
+                      History
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      <button onClick={clearAllSessions} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors cursor-pointer" title="Clear all">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => setSidebarTab("chat")} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </button>
-                ))}
-              </div>
-              <div className="p-3 border-t border-border">
-                <button
-                  onClick={createNewSession}
-                  className="w-full px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  New Chat
-                </button>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+                    {sessions.length === 0 && (
+                      <p className="text-xs text-gray-400 text-center py-8">No chats yet</p>
+                    )}
+                    {sessions.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => { setActiveSessionId(s.id); setSidebarTab("chat"); }}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-300 cursor-pointer group ${
+                          s.id === activeSessionId ? "bg-violet-50 text-violet-700" : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="truncate text-xs font-medium flex items-center gap-2">
+                            <MessageCircle className="w-3 h-3 shrink-0" />
+                            {s.title}
+                          </span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
+                            className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-gray-400 hover:text-red-500 shrink-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p-3 border-t border-[#E5E7EB]">
+                    <button
+                      onClick={createNewSession}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-violet-600 text-white text-xs font-semibold rounded-xl hover:bg-violet-700 transition-all duration-300 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      New Chat
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Mobile sidebar toggle */}
-          <div className="flex items-center gap-2 p-3 border-b border-border bg-card lg:hidden">
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="p-1.5 hover:bg-muted rounded-lg text-foreground transition-colors cursor-pointer"
-              aria-label="Toggle sidebar"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <span className="text-sm font-semibold text-foreground truncate">
-              {activeSession?.title || "AI Tutor"}
-            </span>
-          </div>
+            {/* ─── Messages Area ─── */}
+            <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+              <div className="max-w-[740px] mx-auto">
+                
+                {/* Landing view (no messages yet) */}
+                {!hasMessages && !streamingContent && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex flex-col items-center text-center pt-8 lg:pt-12"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xl font-bold mb-6 shadow-lg shadow-violet-200">
+                      P
+                    </div>
+                    <h1 className="text-2xl lg:text-3xl font-semibold text-gray-900 tracking-tight">
+                      {greeting}
+                    </h1>
+                    <p className="text-gray-400 mt-2 text-base">
+                      How can I help you today?
+                    </p>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-background/40">
-            <div className="max-w-4xl mx-auto flex flex-col gap-4">
-              {messages.map((msg) => (
-                <ChatBubble
-                  key={msg.id}
-                  role={msg.role}
-                  content={msg.content}
-                  image={msg.image}
-                  links={msg.links}
-                />
-              ))}
+                    {/* Quick topics */}
+                    <div className="flex flex-wrap justify-center gap-2 mt-6">
+                      {quickTopics.map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={() => handleQuickReply(item.label, item.query)}
+                          disabled={isWaiting}
+                          className="px-4 py-2 text-sm bg-gray-50 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 text-gray-600 rounded-xl transition-all duration-300 border border-[#E5E7EB] cursor-pointer"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
 
-              {/* Streaming / thinking indicator */}
-              {isWaiting && (
-                <div className="flex flex-col self-start items-start max-w-[92%] lg:max-w-[85%]">
-                  <div className="bg-card border border-border text-foreground rounded-2xl rounded-tl-none shadow-sm p-4 w-full">
-                    {currentStreaming ? (
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <ChatBubble
-                          role="assistant"
-                          content={currentStreaming + " ●"}
-                          links={[]}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm text-muted-foreground font-medium">Thinking</span>
-                        <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" />
-                        <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.15s]" />
-                        <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.3s]" />
+                    {/* Recent chats */}
+                    {recentSessions.length > 0 && (
+                      <div className="w-full mt-10">
+                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-left mb-3">
+                          Your recent chats
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {recentSessions.map((s) => {
+                            const lastMsg = [...s.messages].reverse().find((m) => m.role === "user");
+                            const preview = lastMsg ? (lastMsg.content.length > 60 ? lastMsg.content.slice(0, 60) + "..." : lastMsg.content) : "";
+                            return (
+                              <button
+                                key={s.id}
+                                onClick={() => setActiveSessionId(s.id)}
+                                className="text-left p-4 bg-gray-50 hover:bg-violet-50 border border-[#E5E7EB] rounded-xl transition-all duration-300 cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                                  <MessageCircle className="w-4 h-4 text-violet-500 shrink-0" />
+                                  <span className="truncate">{s.title}</span>
+                                </div>
+                                {preview && (
+                                  <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">{preview}</p>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t border-border bg-card p-4 lg:p-5">
-            <div className="max-w-4xl mx-auto">
-              {selectedImage && (
-                <div className="mb-3">
-                  <ImageUploader
-                    onImageSelect={handleImageSelect}
-                    onImageRemove={handleImageRemove}
-                    selectedImage={selectedImage}
-                    disabled={isWaiting}
-                  />
-                </div>
-              )}
-              <form onSubmit={handleSend} className="flex gap-2">
-                {!selectedImage && (
-                  <ImageUploader
-                    onImageSelect={handleImageSelect}
-                    onImageRemove={handleImageRemove}
-                    selectedImage={null}
-                    disabled={isWaiting}
-                  />
+                  </motion.div>
                 )}
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything about the school... (images supported)"
-                  disabled={isWaiting}
-                  className="flex-1 px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground font-sans disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={startVoiceInput}
-                  disabled={isWaiting}
-                  className={`p-2.5 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
-                    isListening
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card hover:bg-muted disabled:opacity-50 text-foreground border-border"
-                  }`}
-                  aria-label={isListening ? "Stop recording" : "Voice input"}
-                >
-                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                </button>
-                <button
-                  type="submit"
-                  disabled={(!input.trim() && !selectedImage) || isWaiting}
-                  className="p-2.5 bg-primary hover:opacity-90 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer"
-                  aria-label="Send Message"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
+
+                {/* Chat messages */}
+                {(hasMessages || currentStreaming) && (
+                  <div className="flex flex-col gap-4 pb-4">
+                    {messages.filter((m) => m.id !== "welcome").map((msg) => (
+                      <ChatBubble key={msg.id} role={msg.role} content={msg.content} image={msg.image} links={msg.links} />
+                    ))}
+                    {isWaiting && currentStreaming && (
+                      <div className="flex flex-col self-start items-start max-w-[88%] lg:max-w-[80%]">
+                        <div className="bg-card border border-[#E5E7EB] text-gray-800 rounded-2xl rounded-tl-none shadow-sm p-4 w-full">
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                            <MarkdownRenderer content={currentStreaming + " ●"} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {isWaiting && !currentStreaming && (
+                      <div className="flex items-center gap-2 self-start ml-1">
+                        <div className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-4 py-3 rounded-2xl shadow-sm">
+                          <span className="w-1.5 h-1.5 bg-violet-600/60 rounded-full animate-bounce" />
+                          <span className="w-1.5 h-1.5 bg-violet-600/60 rounded-full animate-bounce [animation-delay:0.15s]" />
+                          <span className="w-1.5 h-1.5 bg-violet-600/60 rounded-full animate-bounce [animation-delay:0.3s]" />
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ─── Input Area ─── */}
+            <div className="px-6 lg:px-8 pb-6 pt-2">
+              <div className="max-w-[740px] mx-auto">
+                {selectedImage && (
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl mb-3 border border-[#E5E7EB]">
+                    <img src={selectedImage.preview} alt="" className="w-10 h-10 object-cover rounded-lg border border-[#E5E7EB]" />
+                    <span className="text-xs text-gray-500 flex-1 truncate">{selectedImage.file.name}</span>
+                    <button onClick={() => { URL.revokeObjectURL(selectedImage.preview); setSelectedImage(null); }} className="p-1 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                <form onSubmit={handleSend} className="flex items-center gap-2 bg-gray-50 border border-[#E5E7EB] rounded-[18px] px-4 py-2 focus-within:border-violet-300 focus-within:ring-2 focus-within:ring-violet-100 transition-all duration-300">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    hidden
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isWaiting}
+                    className="p-1.5 text-gray-400 hover:text-violet-600 disabled:opacity-40 transition-colors duration-300 cursor-pointer shrink-0"
+                    title="Attach image"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask me anything..."
+                    disabled={isWaiting}
+                    className="flex-1 bg-transparent py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none font-sans disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={startVoiceInput}
+                    disabled={isWaiting}
+                    className={`p-1.5 transition-colors duration-300 cursor-pointer shrink-0 ${
+                      isListening ? "text-violet-600" : "text-gray-400 hover:text-violet-600 disabled:opacity-40"
+                    }`}
+                    title={isListening ? "Stop recording" : "Voice input"}
+                  >
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={(!input.trim() && !selectedImage) || isWaiting}
+                    className="p-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl transition-all duration-300 cursor-pointer shrink-0 shadow-sm hover:shadow-md"
+                    aria-label="Send"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 
