@@ -556,7 +556,7 @@ export default async function handler(req, res) {
 
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       systemInstruction: SYSTEM_PROMPT,
     });
 
@@ -577,11 +577,16 @@ export default async function handler(req, res) {
     return res.json({ response: responseText });
   } catch (err) {
     console.error("Gemini API error:", err);
+    const msg = err?.message || "";
+    if (msg.includes("429") || msg.toLowerCase().includes("quota")) {
+      return res.status(429).json({
+        error: "Quota exceeded",
+        detail: "The AI assistant is getting a lot of requests right now. Please try again in a little while. 🙏",
+      });
+    }
     return res.status(500).json({
       error: "Failed to get response from AI",
-      detail: err.message,
-      name: err.name,
-      stack: (err.stack || "").split("\n").slice(0, 4).join(" | "),
+      detail: "Sorry, something went wrong. Please try again later.",
     });
   }
 }

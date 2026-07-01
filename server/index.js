@@ -556,7 +556,7 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       systemInstruction: SYSTEM_PROMPT,
     });
 
@@ -598,7 +598,7 @@ app.post("/api/chat/stream", async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       systemInstruction: SYSTEM_PROMPT,
     });
 

@@ -142,12 +142,16 @@ export default function ChatBot() {
       ]);
     } catch (err) {
       console.error("Chatbot error:", err);
+      const friendly =
+        err instanceof Error && err.message
+          ? err.message
+          : "Sorry, I'm currently unable to answer. Please try again later.";
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Sorry, I'm currently unable to answer. Please try again later.",
+          content: friendly,
           links: []
         }
       ]);
