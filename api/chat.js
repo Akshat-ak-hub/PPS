@@ -554,7 +554,16 @@ export default async function handler(req, res) {
 
     const chatHistory = buildGeminiHistory(messages.slice(0, -1));
     const chat = model.startChat({ history: chatHistory });
-    const result = await chat.sendMessage(lastMessage.content);
+
+    let result;
+    if (lastMessage.image) {
+      result = await chat.sendMessage([
+        { text: lastMessage.content || "What is in this image?" },
+        { inlineData: { mimeType: lastMessage.image.mimeType, data: lastMessage.image.data } }
+      ]);
+    } else {
+      result = await chat.sendMessage(lastMessage.content);
+    }
     const responseText = result.response.text();
 
     return res.json({ response: responseText });

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  MessageCircle, X, Send, Sparkles, Info, School
+  MessageCircle, X, Send, Sparkles, Info, School, ImagePlus
 } from "lucide-react";
 import { useChatBot } from "@/contexts/ChatBotContext";
 
@@ -13,15 +13,28 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   links: { label: string; url: string }[];
+  image?: string;
 }
 
 interface ConversationMessage {
   role: "user" | "assistant";
   content: string;
+  image?: { mimeType: string; data: string };
 }
 
 const WELCOME_MESSAGE =
   "Hello there! 👋\n\nWelcome to **Priya Public School**! I'm your friendly AI assistant and also an AI tutor for all subjects from Nursery to 8th grade.\n\nHow can I help you today? Feel free to ask me anything about the school or any academic questions you might have! 😊";
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function ChatBot() {
   const { isOpen, toggle, close } = useChatBot();
@@ -31,9 +44,11 @@ export default function ChatBot() {
   const [input, setInput] = useState("");
   const [isWaiting, setIsWaiting] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,14 +76,44 @@ export default function ChatBot() {
     return { text: content, links };
   };
 
-  const handleQuery = useCallback(async (userContent: string) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("Image must be under 5MB");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are allowed");
+      return;
+    }
+
+    const preview = URL.createObjectURL(file);
+    setSelectedImage({ file, preview });
+    e.target.value = "";
+  };
+
+  const removeSelectedImage = () => {
+    if (selectedImage) {
+      URL.revokeObjectURL(selectedImage.preview);
+      setSelectedImage(null);
+    }
+  };
+
+  const handleQuery = useCallback(async (userContent: string, imageData?: string, imageMimeType?: string) => {
     setIsWaiting(true);
 
     const conversation: ConversationMessage[] = messages
       .filter((m) => m.id !== "welcome")
       .map((m) => ({ role: m.role, content: m.content }));
 
-    conversation.push({ role: "user", content: userContent });
+    const userMsg: ConversationMessage = { role: "user", content: userContent };
+    if (imageData && imageMimeType) {
+      userMsg.image = { mimeType: imageMimeType, data: imageData };
+    }
+    conversation.push(userMsg);
 
     try {
       const res = await fetch("/api/chat", {
@@ -106,18 +151,31 @@ export default function ChatBot() {
     }
   }, [messages]);
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isWaiting) return;
+    if ((!trimmed && !selectedImage) || isWaiting) return;
 
     setHasStarted(true);
+
+    let imageDataUrl: string | undefined;
+    let rawImageData: string | undefined;
+    let imageMimeType: string | undefined;
+
+    if (selectedImage) {
+      const dataUrl = await fileToBase64(selectedImage.file);
+      imageDataUrl = dataUrl;
+      rawImageData = dataUrl.split(",")[1];
+      imageMimeType = selectedImage.file.type;
+      removeSelectedImage();
+    }
+
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), role: "user", content: trimmed, links: [] }
+      { id: crypto.randomUUID(), role: "user", content: trimmed, links: [], image: imageDataUrl }
     ]);
     setInput("");
-    handleQuery(trimmed);
+    handleQuery(trimmed, rawImageData, imageMimeType);
   };
 
   const handleQuickReply = (label: string, query: string) => {
@@ -225,7 +283,12 @@ export default function ChatBot() {
                       }`}
                     >
                       {msg.role === "user" ? (
-                        <p>{msg.content}</p>
+                        <div>
+                          {msg.image && (
+                            <img src={msg.image} alt="Uploaded" className="max-w-full rounded-lg mb-2 max-h-48 object-contain bg-black/5" />
+                          )}
+                          {msg.content && <p>{msg.content}</p>}
+                        </div>
                       ) : (
                         <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -290,20 +353,50 @@ export default function ChatBot() {
                 </div>
               )}
 
+              {selectedImage && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg mb-2 border border-border">
+                  <img src={selectedImage.preview} alt="Selected" className="w-10 h-10 object-cover rounded border border-border" />
+                  <span className="text-xs text-muted-foreground flex-1 truncate">{selectedImage.file.name}</span>
+                  <button
+                    type="button"
+                    onClick={removeSelectedImage}
+                    className="p-1 hover:bg-background rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <form onSubmit={handleSend} className="flex gap-2 pt-2 border-t border-border">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  hidden
+                />
                 <input
                   ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything about the school..."
+                  placeholder="Ask me anything about the school... (images supported)"
                   disabled={isWaiting}
                   className="flex-1 px-3.5 py-2 text-sm bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground font-sans disabled:opacity-50"
                 />
                 <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isWaiting}
+                  className="p-2 bg-card hover:bg-muted disabled:opacity-50 text-foreground border border-border rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                  aria-label="Attach image"
+                >
+                  <ImagePlus className="w-4 h-4" />
+                </button>
+                <button
                   type="submit"
-                  disabled={!input.trim() || isWaiting}
+                  disabled={(!input.trim() && !selectedImage) || isWaiting}
                   className="p-2 bg-primary hover:opacity-90 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer"
                   aria-label="Send Message"
                 >
