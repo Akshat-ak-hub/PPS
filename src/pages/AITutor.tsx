@@ -4,6 +4,7 @@ import {
   Send, Sparkles, MessageCircle, History, Settings, Mic, MicOff,
   Home, Paperclip, Trash2, Plus, Bot, X, ChevronLeft
 } from "lucide-react";
+import Layout from "@/components/layout/Layout";
 import ChatBubble from "@/components/ai/ChatBubble";
 import MarkdownRenderer from "@/components/ai/MarkdownRenderer";
 
@@ -162,8 +163,9 @@ const AITutor = () => {
         if (idx < words.length) { setStreamingContent(words.slice(0, idx + 1).join(" ")); idx++; }
         else { clearInterval(ti); setStreamingContent(""); updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: text || fullText, links }]); setIsWaiting(false); }
       }, 40);
-    } catch {
-      updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: "Sorry, I'm currently unable to answer. Please try again later.", links: [] }]);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Unknown error";
+      updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: `Sorry, I couldn't process your request.\n\n> **Error:** ${detail}\n\nMake sure the server is running (\`npm run server\`) and \`GEMINI_API_KEY\` is set in your \`.env\` file.`, links: [] }]);
       setIsWaiting(false);
     } finally { inputRef.current?.focus(); }
   }, [activeSessionId, messages]);
@@ -218,10 +220,10 @@ const AITutor = () => {
   const recentSessions = sessions.filter((s) => s.messages.length > 1).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F4F4F5] font-sans antialiased">
-      {/* Hide Navbar/Footer via full-screen layout */}
-      <div className="max-w-[1440px] mx-auto p-4 h-screen max-h-screen flex items-center">
-        <div className="w-full h-full bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] overflow-hidden flex">
+    <Layout>
+      <div className="min-h-[calc(100vh-16rem)] bg-[#F4F4F5] pt-24 pb-12">
+        <div className="max-w-[1200px] mx-auto px-4 h-[calc(100vh-18rem)]">
+          <div className="w-full h-full bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.06)] overflow-hidden flex">
           
           {/* ─── Sidebar ─── */}
           <aside className="w-[76px] shrink-0 bg-white border-r border-[#E5E7EB] flex flex-col items-center py-5 gap-1">
@@ -485,6 +487,7 @@ const AITutor = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 
