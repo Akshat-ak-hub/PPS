@@ -26,3 +26,6 @@ dist-ssr
 # Lighthouse reports
 lighthouse-*.report.html
 lighthouse-*.report.json
+
+# Environment files with secrets
+.env

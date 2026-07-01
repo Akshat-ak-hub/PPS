@@ -42,15 +42,15 @@ const Navbar = () => {
           : "bg-card border-b border-border"
       )}
     >
-      <nav className="container mx-auto px-4 lg:px-8" aria-label="Main navigation">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+      <nav className="container mx-auto px-4 xl:px-8" aria-label="Main navigation">
+        <div className="flex items-center justify-between h-16 xl:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-4 rounded-lg">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
+            <div className="w-10 h-10 xl:w-12 xl:h-12 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
               <img src={myImage} alt="Logo" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-display text-lg lg:text-xl font-bold text-foreground">
+              <h1 className="font-display text-lg xl:text-xl font-bold text-foreground">
                 Priya Public School
               </h1>
               <p className="text-xs text-muted-foreground -mt-1">Himachal Pradesh</p>
@@ -58,14 +58,14 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <ul className="hidden lg:flex items-center gap-2">
+          <ul className="hidden xl:flex items-center gap-1">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <Link
                   to={link.href}
                   aria-current={location.pathname === link.href ? "page" : undefined}
                   className={cn(
-                    "relative px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
+                    "relative px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
                     location.pathname === link.href
                       ? "text-primary"
                       : "text-foreground hover:text-primary hover:bg-muted"
@@ -75,7 +75,7 @@ const Navbar = () => {
                   {location.pathname === link.href && (
                     <motion.div
                       layoutId="navbar-indicator"
-                      className="absolute bottom-0 left-4 right-4 h-0.5 bg-primary rounded-full"
+                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-primary rounded-full"
                     />
                   )}
                 </Link>
@@ -87,7 +87,7 @@ const Navbar = () => {
           <Link
             to="/admissions"
             aria-label="Apply for admission"
-            className="hidden lg:inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+            className="hidden xl:inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold text-sm rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
           >
             Apply Now
           </Link>
@@ -95,7 +95,7 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors text-foreground focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+            className="xl:hidden p-2 rounded-lg hover:bg-muted transition-colors text-foreground focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
             aria-label="Toggle menu"
             aria-expanded={isOpen}
           >
@@ -112,7 +112,7 @@ const Navbar = () => {
             animate={{ opacity: 1, maxHeight: 500 }}
             exit={{ opacity: 0, maxHeight: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden bg-card border-b border-border overflow-hidden"
+            className="xl:hidden bg-card border-b border-border overflow-hidden"
           >
             <div className="container mx-auto px-4 py-4">
               <ul className="space-y-1">
