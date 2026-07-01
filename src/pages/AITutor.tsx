@@ -153,7 +153,10 @@ const AITutor = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: conversation }),
       });
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server error ${res.status}`);
+      }
       const data = await res.json();
       const fullText = data.response;
       const { text, links } = parseLinks(fullText);
@@ -165,7 +168,7 @@ const AITutor = () => {
       }, 40);
     } catch (err) {
       const detail = err instanceof Error ? err.message : "Unknown error";
-      updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: `Sorry, I couldn't process your request.\n\n> **Error:** ${detail}\n\nMake sure the server is running (\`npm run server\`) and \`GEMINI_API_KEY\` is set in your \`.env\` file.`, links: [] }]);
+      updateSessionMessages(activeSessionId, [...messages, { id: crypto.randomUUID(), role: "assistant", content: detail, links: [] }]);
       setIsWaiting(false);
     } finally { inputRef.current?.focus(); }
   }, [activeSessionId, messages]);

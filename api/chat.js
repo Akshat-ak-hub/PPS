@@ -524,6 +524,62 @@ function buildGeminiHistory(messages) {
   return history;
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function isTransient(err) {
+  const m = (err?.message || "").toLowerCase();
+  return (
+    m.includes("503") ||
+    m.includes("500") ||
+    m.includes("overloaded") ||
+    m.includes("high demand") ||
+    m.includes("unavailable") ||
+    m.includes("429") ||
+    m.includes("rate limit")
+  );
+}
+
+// Ordered list of models to try. The primary (env or flash-lite) is attempted
+// first; if a model is overloaded/rate-limited we fall back to the next one,
+// since different models have independent capacity.
+function getModelChain() {
+  const primary = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  return [...new Set([primary, "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"])];
+}
+
+async function generateReply(genAI, messages, lastMessage) {
+  const chatHistory = buildGeminiHistory(messages.slice(0, -1));
+  const models = getModelChain();
+  let lastErr;
+
+  for (const modelName of models) {
+    // Two attempts per model with a short backoff for transient blips.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          systemInstruction: SYSTEM_PROMPT,
+        });
+        const chat = model.startChat({ history: chatHistory });
+
+        const result = lastMessage.image
+          ? await chat.sendMessage([
+              { text: lastMessage.content || "What is in this image?" },
+              { inlineData: { mimeType: lastMessage.image.mimeType, data: lastMessage.image.data } },
+            ])
+          : await chat.sendMessage(lastMessage.content);
+
+        return result.response.text();
+      } catch (err) {
+        lastErr = err;
+        if (!isTransient(err)) throw err; // real error (bad request, etc.) — stop
+        if (attempt === 0) await sleep(500); // brief backoff before retrying same model
+      }
+    }
+  }
+  throw lastErr;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -555,39 +611,27 @@ export default async function handler(req, res) {
     }
 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
-      systemInstruction: SYSTEM_PROMPT,
-    });
-
-    const chatHistory = buildGeminiHistory(messages.slice(0, -1));
-    const chat = model.startChat({ history: chatHistory });
-
-    let result;
-    if (lastMessage.image) {
-      result = await chat.sendMessage([
-        { text: lastMessage.content || "What is in this image?" },
-        { inlineData: { mimeType: lastMessage.image.mimeType, data: lastMessage.image.data } }
-      ]);
-    } else {
-      result = await chat.sendMessage(lastMessage.content);
-    }
-    const responseText = result.response.text();
+    const responseText = await generateReply(genAI, messages, lastMessage);
 
     return res.json({ response: responseText });
   } catch (err) {
     console.error("Gemini API error:", err);
-    const msg = err?.message || "";
-    if (msg.includes("429") || msg.toLowerCase().includes("quota")) {
+    const msg = (err?.message || "").toLowerCase();
+    if (msg.includes("quota")) {
       return res.status(429).json({
         error: "Quota exceeded",
-        detail: "The AI assistant is getting a lot of requests right now. Please try again in a little while. 🙏",
+        detail: "The daily free usage limit has been reached. Please try again after some time. 🙏",
+      });
+    }
+    if (msg.includes("503") || msg.includes("overloaded") || msg.includes("high demand") || msg.includes("unavailable")) {
+      return res.status(503).json({
+        error: "Model busy",
+        detail: "The AI is experiencing high demand right now. Please try again in a few moments. 🙏",
       });
     }
     return res.status(500).json({
       error: "Failed to get response from AI",
       detail: "Sorry, something went wrong. Please try again later.",
-      debug: err?.message,
     });
   }
 }
