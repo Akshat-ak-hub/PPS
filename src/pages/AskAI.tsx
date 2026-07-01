@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import {
   Send, Sparkles, Info, School, ImagePlus, Bot, MessageCircle, X
 } from "lucide-react";
@@ -244,10 +247,10 @@ const AskAI = () => {
                       }`}
                     >
                       <div
-                        className={`p-3 lg:p-4 rounded-2xl text-sm leading-relaxed ${
+                        className={`p-3 lg:p-4 text-sm leading-relaxed ${
                           msg.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-tr-none shadow-sm"
-                            : "bg-card border border-border text-foreground rounded-tl-none shadow-sm"
+                            ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none shadow-sm"
+                            : "bg-card border border-border/80 text-foreground rounded-2xl rounded-tl-none shadow-md border-l-4 border-l-primary/40"
                         }`}
                       >
                         {msg.role === "user" ? (
@@ -258,8 +261,11 @@ const AskAI = () => {
                             {msg.content && <p className="text-sm">{msg.content}</p>}
                           </div>
                         ) : (
-                          <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground [&_.katex-display]:my-3 [&_.katex]:text-foreground">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
                               {msg.content}
                             </ReactMarkdown>
                           </div>
