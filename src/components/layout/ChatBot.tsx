@@ -208,7 +208,7 @@ export default function ChatBot() {
         onClick={toggle}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-[999] w-14 h-14 bg-gradient-to-r from-primary to-primary-foreground text-blue-500 rounded-full flex items-center justify-center shadow-lg border border-white/20 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="fixed bottom-6 right-6 z-[999] w-14 h-14 bg-gradient-to-br from-primary to-accent text-white rounded-full flex items-center justify-center shadow-lg border border-white/20 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Toggle Chatbot Assistant"
       >
         <AnimatePresence mode="wait">
@@ -250,15 +250,15 @@ export default function ChatBot() {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="fixed bottom-24 right-6 z-[999] w-[380px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col font-sans"
           >
-            <div className="p-4 bg-gradient-to-r from-primary/95 to-primary-foreground text-white flex items-center justify-between shadow-sm relative">
+            <div className="p-4 bg-gradient-to-r from-primary to-accent text-white flex items-center justify-between shadow-sm relative">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center border border-white/25">
                   <School className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-sm tracking-wide">PPS AI Assistant</h3>
-                  <p className="text-xs text-white/70 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  <p className="text-xs text-white/80 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
                     Powered by Gemini AI
                   </p>
                 </div>
