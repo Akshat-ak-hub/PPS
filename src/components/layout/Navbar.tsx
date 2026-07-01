@@ -3,8 +3,9 @@ import myImage from "../../assets/logo.png"
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChatBot } from "@/contexts/ChatBotContext";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -16,10 +17,15 @@ const navLinks = [
   { name: "Rules", href: "/rules-and-regulations" },
 ];
 
+const aiLinks = [
+  { name: "Ask AI", href: "/ask-ai" },
+];
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { open: openChatBot } = useChatBot();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,6 +89,15 @@ const Navbar = () => {
             ))}
           </ul>
 
+          {/* Ask AI Button */}
+          <button
+            onClick={openChatBot}
+            className="hidden xl:inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground font-semibold text-sm rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-card focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Ask AI
+          </button>
+
           {/* CTA Button */}
           <Link
             to="/admissions"
@@ -139,7 +154,14 @@ const Navbar = () => {
                 ))}
               </ul>
 
-              <div className="mt-4 pt-4 border-t border-border">
+              <div className="mt-4 pt-4 border-t border-border space-y-2">
+                <button
+                  onClick={openChatBot}
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3 bg-secondary text-secondary-foreground font-semibold rounded-xl hover:opacity-90 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Ask AI
+                </button>
                 <Link
                   to="/admissions"
                   className="block w-full text-center px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 hover:scale-[1.02] transition-all duration-200 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"

@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import {
   MessageCircle, X, Send, Sparkles, Info, School
 } from "lucide-react";
+import { useChatBot } from "@/contexts/ChatBotContext";
 
 interface Message {
   id: string;
@@ -20,10 +21,10 @@ interface ConversationMessage {
 }
 
 const WELCOME_MESSAGE =
-  "Hello! I am your **Priya Public School** AI Assistant. How can I help you today? Feel free to ask about admissions, fee structures, bus routes, school rules, faculty, events, or anything else about our school!";
+  "Hello! I am your **Priya Public School** AI Assistant and Tutor. I can help with **school info**, **homework**, **Maths problems**, **Science explanations**, or any subject for classes Nursery to 8th. What would you like to learn?";
 
 export default function ChatBot() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, toggle, close } = useChatBot();
   const [messages, setMessages] = useState<Message[]>([
     { id: "welcome", role: "assistant", content: WELCOME_MESSAGE, links: [] }
   ]);
@@ -140,7 +141,7 @@ export default function ChatBot() {
   return (
     <div className="relative text-foreground">
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggle}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="fixed bottom-6 right-6 z-[999] w-14 h-14 bg-gradient-to-r from-primary to-primary-foreground text-blue-500 rounded-full flex items-center justify-center shadow-lg border border-white/20 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -199,7 +200,7 @@ export default function ChatBot() {
                 </div>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={close}
                 className="p-1.5 hover:bg-white/10 rounded-lg text-white transition-colors"
                 aria-label="Close Chat"
               >
