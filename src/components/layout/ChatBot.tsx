@@ -21,7 +21,7 @@ interface ConversationMessage {
 }
 
 const WELCOME_MESSAGE =
-  "Hello! I am your **Priya Public School** AI Assistant and Tutor. I can help with **school info**, **homework**, **Maths problems**, **Science explanations**, or any subject for classes Nursery to 8th. What would you like to learn?";
+  "Hello there! 👋\n\nWelcome to **Priya Public School**! I'm your friendly AI assistant and also an AI tutor for all subjects from Nursery to 8th grade.\n\nHow can I help you today? Feel free to ask me anything about the school or any academic questions you might have! 😊";
 
 export default function ChatBot() {
   const { isOpen, toggle, close } = useChatBot();
