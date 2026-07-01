@@ -587,6 +587,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       error: "Failed to get response from AI",
       detail: "Sorry, something went wrong. Please try again later.",
+      debug: err?.message,
     });
   }
 }
